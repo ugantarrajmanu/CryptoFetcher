@@ -6,6 +6,20 @@ from src.config import settings
 class CoinGeckoClient:
     def __init__(self):
         self.base_url = settings.COINGECKO_BASE_URL
+        self.timeout = settings.EXTERNAL_TIMEOUT
+
+    async def _get(self, endpoint: str, params: Dict[str, Any] = None) -> Any:
+        async with httpx.AsyncClient(timeout=self.timeout) as client:
+            try:
+                response = await client.get(f"{self.base_url}{endpoint}", params=params)
+                response.raise_for_status()
+                return response.json()
+            except httpx.HTTPStatusError as e:
+                if e.response.status_code == 429:
+                    raise Exception("CoinGecko rate limit exceeded.")
+                raise Exception(f"Upstream API Error: {e.response.status_code}")
+            except Exception as e:
+                raise Exception(f"Connection error: {str(e)}")
 
     # fetch list of coins
     async def get_coin_list(self) -> List[Dict]:
