@@ -27,6 +27,8 @@ async def health_check():
         "upstream_service": upstream
     }
 
+
+# list all coins
 @app.get("/api/v1/coins", dependencies=[Depends(verify_token)], tags=["Coins"])
 async def list_all_coins(
     page: int = Query(1, ge=1, description="Page number"),
@@ -49,4 +51,15 @@ async def list_all_coins(
         }
     except Exception as e:
         raise HTTPException(status_code=503, detail=str(e))
+
+
+# list all coin categories
+@app.get("/api/v1/categories", dependencies=[Depends(verify_token)], tags=["Coins"])
+async def list_categories():
+    try:
+        categories = await client.get_categories()
+        return {"data": categories}
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
+
 
