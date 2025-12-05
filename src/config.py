@@ -1,3 +1,4 @@
+from pydantic_settings.main import SettingsConfigDict
 import os
 from pydantic_settings import BaseSettings
 
@@ -9,8 +10,7 @@ class Settings(BaseSettings):
 
     COINGECKO_BASE_URL: str = "https://api.coingecko.com/api/v3/"
 
-    class Config:
-        env_file = ".env"
+    model_config = SettingsConfigDict(env_file=".env")
 
 
 settings = Settings()
