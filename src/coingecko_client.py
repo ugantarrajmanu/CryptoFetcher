@@ -1,3 +1,4 @@
+import httpx
 import asyncio
 from typing import List, Dict, Optional, Any
 from src.config import settings
@@ -11,6 +12,7 @@ class CoinGeckoClient:
     async def _get(self, endpoint: str, params: Dict[str, Any] = None) -> Any:
         async with httpx.AsyncClient(timeout=self.timeout) as client:
             try:
+                # response = await client.get(f"https://api.coingecko.com/api/v3/coins/list", params=params)
                 response = await client.get(f"{self.base_url}{endpoint}", params=params)
                 response.raise_for_status()
                 return response.json()
