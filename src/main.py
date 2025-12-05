@@ -1,6 +1,9 @@
+from multiprocessing.connection import Client
 from fastapi import FastAPI, Depends, Query, HTTPException
+from typing import Optional, List
 from src.config import settings
 from src.auth import verify_token
+from src.coingecko_client import CoinGeckoClient
 
 
 app = FastAPI(
@@ -9,6 +12,8 @@ app = FastAPI(
     description = "API for CryptoFetcher"
     
 )
+
+client = CoinGeckoClient()
 
 @app.get("/health", tags=["Health"])
 async def health_check():
@@ -63,3 +68,28 @@ async def list_categories():
         raise HTTPException(status_code=503, detail=str(e))
 
 
+# liss coin with market data
+
+@app.get("/api/v1/coins/markets", dependencies=[Depends(verify_token)], tags=["Markets"])
+async def get_market_data(
+    ids: Optional[str] = Query(None, description="Comma-separated Coin IDs"),
+    category: Optional[str] = Query(None, description="Filter by category name"),
+    page: int = Query(1, ge=1),
+    per_page: int = Query(10, ge=1, le=250)
+):
+
+    try:
+        data = await client.get_market_data(
+            vs_currencies=["inr", "cad"],
+            ids=ids,
+            category=category,
+            page=page,
+            per_page=per_page
+        )
+        return {
+            "page": page,
+            "per_page": per_page,
+            "data": data
+        }
+    except Exception as e:
+        raise HTTPException(status_code=503, detail=str(e))
